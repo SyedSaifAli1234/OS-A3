@@ -3,7 +3,7 @@
 #include <sys/types.h>
 #include <sys/shm.h>     
 #include <errno.h>
-#include <semaphore.h>   //For sem_wait and sem_post
+#include <semaphore.h>
 #include <fcntl.h>
 
 int* pcp;
@@ -12,22 +12,17 @@ sem_t* fp;
 sem_t* pcp_sem;
 
 int main(){
-	
-
-
-
 
 
 	//Step 1 - create shared mem for pcp so that we can use the integer pcp one at a time
 	printf("Starting\n");
-	//int shmget(key_t key, size_t size, int shmflg);
-
 	int shmid_pcp = shmget(121212, sizeof(int), 0644|IPC_CREAT); 
-	if ( shmid_pcp < 0){
+
+	if (shmid_pcp < 0){
 		perror ("Shared memory not created\n");
 		exit(0);
 	}
-	printf("Shmget done\n");
+	printf("Shared Memory created for pcp\n");
 
 	//Att shared mem to process
 	// void *shmat(int shmid, const void *shmaddr, int shmflg);
