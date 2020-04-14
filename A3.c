@@ -27,17 +27,14 @@ int main(){
 	//Att shared mem to process
 	// void *shmat(int shmid, const void *shmaddr, int shmflg);
 	pcp = (int*) shmat(shmid_pcp, NULL, 0);
-	if ( pcp < 0){
+	if (pcp < 0){
 		perror ("Shared memory att not done\n");
 		exit(0);
 	}
 
-	printf("Shmat done\n");
+	printf("Shared memory for int* pcp has been attached\n");
 	// initial value of he variable in shared mempcp is 0
 	*pcp = 0;
-
-
-
 
 
 
@@ -46,21 +43,21 @@ int main(){
 	// Step 2 Shared mem create for semaphore cp
 
 	int shmid_cp = shmget(131313, sizeof(int), 0644|IPC_CREAT); 
-	if ( shmid_cp < 0){
+	if (shmid_cp < 0){
 		perror ("Shared memory for cp not created\n");
 		exit(0);
 	}
-	printf("Shmget done\n");
+	printf("Shared memory created for CoronaPatients\n");
 
 	//Att shared mem to process1
-	// void *shmat(int shmid, const void *shmaddr, int shmflg);
+	//void *shmat(int shmid, const void *shmaddr, int shmflg);
 	cp = (sem_t*) shmat(shmid_cp, NULL, 0);
 
 	if ( cp < 0){
 		perror ("Shared memory att not done\n");
 		exit(0);
 	}
-	printf("Shmat done\n");
+	printf("Shared memory for CP Semaphore has been attached\n");
 
 	// initial value of semaphore 
 	// sem_t *sem_open(const char *name, int oflag, mode_t mode, unsigned int value);
@@ -73,9 +70,7 @@ int main(){
 		perror("Error in removing semaphore sem_cp\n");
 		exit(0);
 	}
-	printf("Sem_unlink done\n");
-
-
+	printf("Sem CP has been unlinked\n");
 
 
 
