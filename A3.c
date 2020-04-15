@@ -17,10 +17,12 @@ void* CoronaPatients(void* param){
 }
 
 
-int main(int argc, char* argv[]){
+int main(int argc, char** argv){
 
-	printf("argv[1] : %c\n", argv[1]);
-	pthread_t id[argv[1]-1];
+	printf("argv[1] : %c\n", *argv[1]);
+	int number = *argv[1] -48;
+	printf("Number = %d\n", number);
+	pthread_t id[number];
 
 
 	//Step 1 - create shared mem for pcp so that we can use the integer pcp one at a time
@@ -134,19 +136,28 @@ int main(int argc, char* argv[]){
 
 
     //creating threads now - after all shared mem ork is done
+    int i;
 
-	for(int i = 0; i< argv[1]; i++){
+	for(i = 0; i< number; i++){
 		if (pthread_create(&id[i], NULL, CoronaPatients, NULL) < 0) {
 	    	printf("Thread not created\n");
 	  	}
   	}
 
 
-	for(int i = 0; i< argv[1]; i++){
+	for(i = 0; i< number; i++){
 	  	if (pthread_join(id[i], NULL) < 0) {
 	    	printf("Thread not created\n");
 	  	}
 	}
+
+	printf("pcp %d\n", *pcp);
+
+
+
+
+
+
 
 
 	result = shmdt(pcp);
@@ -181,12 +192,14 @@ int main(int argc, char* argv[]){
 	shmctl(shmid_fp, IPC_RMID, 0);
 	shmctl(shmid_cp, IPC_RMID, 0);
 	shmctl(shmid_pcp_sem, IPC_RMID, 0);
+	printf("R\n");
 
 
     //delete all semaphores
     sem_destroy(cp);
     sem_destroy(fp);
     sem_destroy(pcp_sem);
+    printf("E\n");
 
 	return 0;
 }
