@@ -13,7 +13,6 @@ sem_t* buff2;
 
 
 
-
 int main(){
 
 
@@ -27,7 +26,6 @@ int main(){
 		perror ("Shared memory att not done\n");
 		exit(0);
 	}
-	//printf("1\n"); 
 
 
 
@@ -42,7 +40,6 @@ int main(){
 		perror ("Shared memory att not done\n");
 		exit(0);
 	}
-	//printf("2\n");
 
 
 
@@ -64,7 +61,6 @@ int main(){
 		perror("Error in unlinking semaphore buff1_sem\n");
 		exit(0);
 	}	
-	//printf("3\n");
 
 
 
@@ -87,9 +83,6 @@ int main(){
 		perror("Error in unlinking semaphore buff2_sem\n");
 		exit(0);
 	}
-	//printf("4\n");
-
-
 
 
 
@@ -195,7 +188,7 @@ int main(){
 
 
 
-	result = shmdt(buff1);																		//Detaching and Destroying here
+	result = shmdt(buff1);																//Detaching and Destroying here
 	if (result < 0){
 		perror("Error in removing semaphore buff1_sem\n");
 		exit(0);
