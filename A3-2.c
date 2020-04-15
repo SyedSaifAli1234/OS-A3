@@ -12,51 +12,6 @@ sem_t* buff1;
 sem_t* buff2;
 
 
-// void* CoronaPatients(void* param){
-
-// 	sem_wait(pcp_sem);
-// 	*pcp = *pcp + 1;
-// 	printf("Potential Corona Virus Patiens count = %d\n", *pcp);
-// 	sem_post(pcp_sem);
-
-
-// 	int random = rand() % 2;
-// 	printf("random = %d\n",random);
-
-// 	if(random == 0){
-// 		sem_post(fp);
-// 		printf("Flu patient incremented\n");
-
-// 		sem_wait(pcp_sem);
-// 		*pcp = *pcp - 1;
-// 		printf("PCP decremented\n");
-// 		sem_post(pcp_sem);	
-// 	}
-// 	else if(random == 1){
-// 		sem_post(cp);
-// 		printf("Corona patient incremented\n");
-
-// 		sem_wait(pcp_sem);
-// 		*pcp = *pcp - 1;
-// 		printf("PCP decremented\n");
-// 		sem_post(pcp_sem);	
-
-// 		int sum = 0;
-// 		while(1){
-// 		sum = rand()%2 + rand()%2;
-
-// 			if (sum == 0){
-// 				sem_wait(cp);
-// 				printf("Corona patient has been treated! :D\n");
-// 				break;
-// 			}
-// 		sum = 0;
-// 	    }
-
-// 	}
-// 	pthread_exit(0);
-
-// }
 
 
 int main(){
@@ -163,10 +118,12 @@ int main(){
 
 	    sem_post(buff1);
 	    printf("\nLeaving Process A after writing to buffer1\n");
-
+	    exit(0);
 	}	
-	else{																				//Parent
-		if(fork() == 0){																//Child2
+	else{
+		wait(NULL);																		//Parent
+		if(fork() == 0){
+		//B say read and enter in buffer1												//Child2
 			printf("In Process B\n");
 			FILE *fp;
 		    char line[11];
@@ -188,20 +145,44 @@ int main(){
 		    sem_post(buff1);
 		    printf("\nLeaving Process B after writing to buffer1\n");
 		    printf("%s\n", buffer);
+		    exit(0);
 		}
-		else{																			//Parent
-			if(fork() == 0){															//Child3
-				//printf("In Child3\n");
-				//Buffer 1 se C reads and enter in Buffer 2
+		else{
+			wait(NULL);																			//Parent
+			if(fork() == 0){		
+			//C say read from buffer1 to buffer 2										//Child3
+				printf("\nIn Process C\n");
+				sem_wait(buff1);
+				sem_wait(buff2);
+				for(int i = 0; i<20; i++){
+					buffer2[i] = buffer[i];
+				}
+				printf("Buffer 1 = %s\n", buffer);
+				printf("Buffer 2 = %s\n", buffer2);
+				sem_post(buff1);
+				sem_post(buff2);
+				exit(0);
 			}
-			else{																		//Parent
+			else{	
+				wait(NULL);																//Parent
 				if(fork() == 0){														//Child4
-					//printf("In Child4c\n");
 					//D reads from Buffer 2 and prints
+					printf("In Process D\n");
+					sem_wait(buff2);
+					
+					for(int i = 0; i<20; i++){
+						buffer2[i] = buffer[i];
+						printf("%c", buffer2[i]);
+					}
+					sem_post(buff2);
+					printf("\n");
+					exit(0);
+				}
+				else{
+					wait(NULL);
 				}
 			}
 		}
-		//printf("Main parent exiting\n");
 	}
 
 
@@ -243,7 +224,7 @@ int main(){
     sem_destroy(buff1);
     sem_destroy(buff2);
 
-	//printf("Works\n");
+	printf("\nEverything works\n");
 	return 0;
 }
 
