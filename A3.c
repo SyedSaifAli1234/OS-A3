@@ -17,10 +17,10 @@ void* CoronaPatients(void* param){
 }
 
 
-int main(){
+int main(int argc, char* argv[]){
 
-
-	pthread_t id1, id2;
+	printf("argv[1] : %c\n", argv[1]);
+	pthread_t id[argv[1]-1];
 
 
 	//Step 1 - create shared mem for pcp so that we can use the integer pcp one at a time
@@ -43,7 +43,6 @@ int main(){
 
 
 	// Step 2 Shared mem create for semaphore cp
-
 	int shmid_cp = shmget(131313, sizeof(int), 0644|IPC_CREAT); 
 	if (shmid_cp < 0){
 		perror ("Shared memory for cp not created\n");
@@ -132,12 +131,22 @@ int main(){
 
 
 
-	if (pthread_create(&id1, NULL, Producer, &n) < 0) {
-    	printf("Thread not created\n");
+
+
+    //creating threads now - after all shared mem ork is done
+
+	for(int i = 0; i< argv[1]; i++){
+		if (pthread_create(&id[i], NULL, CoronaPatients, NULL) < 0) {
+	    	printf("Thread not created\n");
+	  	}
   	}
 
 
-
+	for(int i = 0; i< argv[1]; i++){
+	  	if (pthread_join(id[i], NULL) < 0) {
+	    	printf("Thread not created\n");
+	  	}
+	}
 
 
 	result = shmdt(pcp);
