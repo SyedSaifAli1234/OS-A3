@@ -72,7 +72,7 @@ int main(){
 		perror ("Shared memory att not done\n");
 		exit(0);
 	}
-	printf("1\n"); 
+	//printf("1\n"); 
 
 
 
@@ -87,7 +87,7 @@ int main(){
 		perror ("Shared memory att not done\n");
 		exit(0);
 	}
-	printf("2\n");
+	//printf("2\n");
 
 
 
@@ -109,7 +109,7 @@ int main(){
 		perror("Error in unlinking semaphore buff1_sem\n");
 		exit(0);
 	}	
-	printf("3\n");
+	//printf("3\n");
 
 
 
@@ -132,7 +132,7 @@ int main(){
 		perror("Error in unlinking semaphore buff2_sem\n");
 		exit(0);
 	}
-	printf("4\n");
+	//printf("4\n");
 
 
 
@@ -145,34 +145,64 @@ int main(){
 
 	if(fork() == 0){																	//Child1
 		//A say read and enter in buffer1
+		printf("In Process A\n");
+		FILE *fp;
+	    char line[11];
+	    line[10] = '\0';
+
+	    fp = fopen("file-1.txt", "r");
+   	    fgets(line, 11, (FILE*)fp);
+	    printf("%s\n", line);
+	    fclose(fp);
+	    
+	    sem_wait(buff1);
+	    for(int i=0; i<10; i++){
+	    	buffer[i] = line[i];
+	    	printf("%c", buffer[i]);
+	    }
+
+	    sem_post(buff1);
+	    printf("\nLeaving Process A after writing to buffer1\n");
+
 	}	
 	else{																				//Parent
 		if(fork() == 0){																//Child2
-			//B say read and enter in buffer1
+			printf("In Process B\n");
+			FILE *fp;
+		    char line[11];
+		    line[10] = '\0';
+
+		    fp = fopen("file-2.txt", "r");
+	   	    fgets(line, 11, (FILE*)fp);
+		    printf("%s\n", line);
+		    fclose(fp);
+		    
+		    sem_wait(buff1);
+		    int j = 10;
+		    for(int i=0; i<10; i++){
+		    	buffer[j] = line[i];
+		    	printf("%c", buffer[j]);
+		    	j++;
+		    }
+
+		    sem_post(buff1);
+		    printf("\nLeaving Process B after writing to buffer1\n");
+		    printf("%s\n", buffer);
 		}
 		else{																			//Parent
 			if(fork() == 0){															//Child3
+				//printf("In Child3\n");
 				//Buffer 1 se C reads and enter in Buffer 2
 			}
 			else{																		//Parent
 				if(fork() == 0){														//Child4
+					//printf("In Child4c\n");
 					//D reads from Buffer 2 and prints
 				}
 			}
 		}
+		//printf("Main parent exiting\n");
 	}
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -213,7 +243,7 @@ int main(){
     sem_destroy(buff1);
     sem_destroy(buff2);
 
-	printf("Works\n");
+	//printf("Works\n");
 	return 0;
 }
 
