@@ -12,51 +12,51 @@ sem_t* cp;
 sem_t* fp;
 
 
-void* CoronaPatients(void* param){
+// void* CoronaPatients(void* param){
 
-	sem_wait(pcp_sem);
-	*pcp = *pcp + 1;
-	printf("Potential Corona Virus Patiens count = %d\n", *pcp);
-	sem_post(pcp_sem);
+// 	sem_wait(pcp_sem);
+// 	*pcp = *pcp + 1;
+// 	printf("Potential Corona Virus Patiens count = %d\n", *pcp);
+// 	sem_post(pcp_sem);
 
 
-	int random = rand() % 2;
-	printf("random = %d\n",random);
+// 	int random = rand() % 2;
+// 	printf("random = %d\n",random);
 
-	if(random == 0){
-		sem_post(fp);
-		printf("Flu patient incremented\n");
+// 	if(random == 0){
+// 		sem_post(fp);
+// 		printf("Flu patient incremented\n");
 
-		sem_wait(pcp_sem);
-		*pcp = *pcp - 1;
-		printf("PCP decremented\n");
-		sem_post(pcp_sem);	
-	}
-	else if(random == 1){
-		sem_post(cp);
-		printf("Corona patient incremented\n");
+// 		sem_wait(pcp_sem);
+// 		*pcp = *pcp - 1;
+// 		printf("PCP decremented\n");
+// 		sem_post(pcp_sem);	
+// 	}
+// 	else if(random == 1){
+// 		sem_post(cp);
+// 		printf("Corona patient incremented\n");
 
-		sem_wait(pcp_sem);
-		*pcp = *pcp - 1;
-		printf("PCP decremented\n");
-		sem_post(pcp_sem);	
+// 		sem_wait(pcp_sem);
+// 		*pcp = *pcp - 1;
+// 		printf("PCP decremented\n");
+// 		sem_post(pcp_sem);	
 
-		int sum = 0;
-		while(1){
-		sum = rand()%2 + rand()%2;
+// 		int sum = 0;
+// 		while(1){
+// 		sum = rand()%2 + rand()%2;
 
-			if (sum == 0){
-				sem_wait(cp);
-				printf("Corona patient has been treated! :D\n");
-				break;
-			}
-		sum = 0;
-	    }
+// 			if (sum == 0){
+// 				sem_wait(cp);
+// 				printf("Corona patient has been treated! :D\n");
+// 				break;
+// 			}
+// 		sum = 0;
+// 	    }
 
-	}
-	pthread_exit(0);
+// 	}
+// 	pthread_exit(0);
 
-}
+// }
 
 
 int main(){
@@ -92,30 +92,22 @@ int main(){
 
 
 
-	result = sem_unlink("sem_pcp");
-	if ( result < 0){
-		perror("Error in removing semaphore sem_pcp\n");
-		exit(0);
-	}
-	//printf("semunlink done\n");
+	// result = sem_unlink("sem_pcp");																//Detaching and Deleting
+	// if ( result < 0){
+	// 	perror("Error in removing semaphore sem_pcp\n");
+	// 	exit(0);
+	// }
 
-	result = shmdt(pcp);
-	if ( result < 0){
-		perror("Error in removing semaphore sem_pcp\n");
-		exit(0);
-	}
-	//printf("Shmdt done\n");
+	// result = shmdt(pcp);
+	// if ( result < 0){
+	// 	perror("Error in removing semaphore sem_pcp\n");
+	// 	exit(0);
+	//}
+	shmctl(shmid_buff1, IPC_RMID, 0);
+	shmctl(shmid_buff2, IPC_RMID, 0);
+    //sem_destroy(pcp_sem);
 
-	
-
-	shmctl(shmid_cp, IPC_RMID, 0);
-	shmctl(shmid_pcp_sem, IPC_RMID, 0);
-	//printf("R\n");
-
-
-    //delete all semaphores
-
-    sem_destroy(pcp_sem);
-
+	printf("Works\n");
 	return 0;
 }
+
