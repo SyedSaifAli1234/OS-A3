@@ -20,6 +20,35 @@ void* CoronaPatients(void* param){
 	sem_post(pcp_sem);
 
 
+	int random = rand() % 2;
+
+	if(random == 0){
+		sem_post(fp);
+		printf("Flu patient incremented\n");
+
+		sem_wait(pcp_sem);
+		*pcp = *pcp - 1;
+		printf("PCP decremented\n");
+		sem_post(pcp_sem);	
+	}
+	else if(random == 0){
+		sem_post(cp);
+		printf("Corona patient incremented\n");
+
+		sem_wait(pcp_sem);
+		*pcp = *pcp - 1;
+		printf("PCP decremented\n");
+		sem_post(pcp_sem);	
+
+		int sum = rand()%2 + rand()%2;
+
+		if (sum == 0){
+			sem_wait(cp);
+			printf("Corona patient has been treated! :D\n");
+		}
+	}
+
+
 
 
 	pthread_exit(0);
