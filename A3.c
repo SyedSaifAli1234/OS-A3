@@ -45,7 +45,7 @@ int main(int argc, char** argv){
 
 
 	// Step 2 Shared mem create for semaphore cp
-	int shmid_cp = shmget(131313, sizeof(int), 0644|IPC_CREAT); 
+	int shmid_cp = shmget(131313, 1024, 0644|IPC_CREAT); 
 	if (shmid_cp < 0){
 		perror ("Shared memory for cp not created\n");
 		exit(0);
@@ -73,7 +73,7 @@ int main(int argc, char** argv){
 
 	//Step 3 Shared mem create for semaphore FP
 
-	int shmid_fp = shmget(141414, sizeof(int), 0644|IPC_CREAT); 
+	int shmid_fp = shmget(141414, 1024, 0644|IPC_CREAT); 
 	if ( shmid_fp < 0){
 		perror ("Shared memory for fp not created\n");
 		exit(0);
@@ -100,7 +100,7 @@ int main(int argc, char** argv){
 
 	//Step 4 shared mem for pcp_sem
 
-	int shmid_pcp_sem = shmget(151515, sizeof(int), 0644|IPC_CREAT); 
+	int shmid_pcp_sem = shmget(151515, 1024, 0644|IPC_CREAT); 
 	if ( shmid_pcp_sem < 0){
 		perror ("Shared memory for pcp_sem not created\n");
 		exit(0);
@@ -129,8 +129,6 @@ int main(int argc, char** argv){
 		exit(0);
 	}
 	printf("semunlink done\n");
-
-
 
 
 
