@@ -67,14 +67,11 @@ int main(int argc, char** argv){
 	pthread_t id[number];
 
 
-	//Step 1 - create shared mem for pcp so that we can use the integer pcp one at a time
-	//printf("Starting\n");
 	int shmid_pcp = shmget(121212, sizeof(int), 0644|IPC_CREAT); 
 	if (shmid_pcp < 0){
 		perror ("Shared memory not created\n");
 		exit(0);
 	}
-	//printf("Shared Memory created for pcp\n");
 
 	pcp = (int*) shmat(shmid_pcp, NULL, 0);								
 	if (pcp < 0){
