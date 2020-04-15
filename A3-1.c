@@ -59,37 +59,34 @@ void* CoronaPatients(void* param){
 }
 
 
-int main(int argc, char** argv){
+int main(){																			//Main
 
-	printf("argv[1] : %c\n", *argv[1]);
-	int number = *argv[1] -48;
+	int number;
+	printf("Enter the number of patients : ");
+	scanf("%d", &number);
 	printf("Number = %d\n", number);
 	pthread_t id[number];
 
 
-	int shmid_pcp = shmget(121212, sizeof(int), 0644|IPC_CREAT); 
+	int shmid_pcp = shmget(121212, sizeof(int), 0644|IPC_CREAT); 					//Shared memory for PCP var
 	if (shmid_pcp < 0){
 		perror ("Shared memory not created\n");
 		exit(0);
 	}
-
 	pcp = (int*) shmat(shmid_pcp, NULL, 0);								
 	if (pcp < 0){
 		perror ("Shared memory att not done\n");
 		exit(0);
 	}
-	
 	*pcp = 0;
 
 
-
 	
-	int shmid_cp = shmget(131313, 1024, 0644|IPC_CREAT); 
+	int shmid_cp = shmget(131313, 1024, 0644|IPC_CREAT); 							//Shared memory for CP 
 	if (shmid_cp < 0){
 		perror ("Shared memory for cp not created\n");
 		exit(0);
 	}
-	
 	cp = (sem_t*) shmat(shmid_cp, NULL, 0);								
 
 	if ( cp < 0){
@@ -102,14 +99,12 @@ int main(int argc, char** argv){
 	if ( result < 0){
 		perror("Error in removing semaphore sem_cp\n");
 		exit(0);
-	}
+	}	
 
 
 
 
-
-
-	int shmid_fp = shmget(141414, 1024, 0644|IPC_CREAT); 
+	int shmid_fp = shmget(141414, 1024, 0644|IPC_CREAT); 							//Shared memory for FP
 	if ( shmid_fp < 0){
 		perror ("Shared memory for fp not created\n");
 		exit(0);
@@ -129,30 +124,31 @@ int main(int argc, char** argv){
 	}
 
 
-	int shmid_pcp_sem = shmget(151515, 1024, 0644|IPC_CREAT); 
+	
+
+	int shmid_pcp_sem = shmget(151515, 1024, 0644|IPC_CREAT); 						//Shared memory for PCP
 	if ( shmid_pcp_sem < 0){
 		perror ("Shared memory for pcp_sem not created\n");
 		exit(0);
 	}
-
 	pcp_sem = (sem_t*) shmat(shmid_pcp_sem, NULL, 0);
-
 	if ( pcp_sem < 0){
 		perror ("Shared memory att not done\n");
 		exit(0);
 	}
 
-
-	
+	sem_open("sem_pcp", O_CREAT|O_EXCL, 0644, 1);
 	result = sem_unlink("sem_pcp");
 	if ( result < 0){
 		perror("Error in removing semaphore sem_pcp\n");
 		exit(0);
 	}
 	
+
+
     int i;
 
-	for(i = 0; i< number; i++){
+	for(i = 0; i< number; i++){														//Creating Threads
 		if (pthread_create(&id[i], NULL, CoronaPatients, NULL) < 0) {
 	    	printf("Thread not created\n");
 	  	}
@@ -160,22 +156,19 @@ int main(int argc, char** argv){
   	}
 
 
-	for(i = 0; i< number; i++){
+	for(i = 0; i< number; i++){														//Returning from Threads
 	  	if (pthread_join(id[i], NULL) < 0) {
 	    	printf("Thread not created\n");
 	  	}
 	}
 
-	printf("PCP %d\n", *pcp);
+	printf("PCP %d\n", *pcp);														
 
 
 
 
 
-
-
-
-	result = shmdt(pcp);
+	result = shmdt(pcp);															//Detaching Semaphores
 	if ( result < 0){
 		perror("Error in removing semaphore sem_pcp\n");
 		exit(0);
@@ -199,14 +192,13 @@ int main(int argc, char** argv){
 		perror("Error in removing semaphore sem_pcp_sem\n");
 		exit(0);
 	}
-	printf("Shmdt done\n");
 
-	shmctl(shmid_pcp, IPC_RMID, 0);
+	shmctl(shmid_pcp, IPC_RMID, 0);													//Clearing Semaphore from mem
 	shmctl(shmid_fp, IPC_RMID, 0);
 	shmctl(shmid_cp, IPC_RMID, 0);
 	shmctl(shmid_pcp_sem, IPC_RMID, 0);
 
-    sem_destroy(cp);
+    sem_destroy(cp);																//Destroying Semaphores
     sem_destroy(fp);
     sem_destroy(pcp_sem);
 
