@@ -14,6 +14,16 @@ sem_t* pcp_sem;
 
 void* CoronaPatients(void* param){
 
+	sem_wait(pcp_sem);
+	*pcp = *pcp + 1;
+	printf("Potential Corona Virus Patiens count = %d\n", *pcp);
+	sem_post(pcp_sem);
+
+
+
+
+	pthread_exit(0);
+
 }
 
 
