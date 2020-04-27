@@ -1,267 +1,223 @@
-#include <stdio.h>          // printf(), scanf()               
-#include <stdlib.h>         // exit(), malloc(), free(), rand()
-#include <sys/types.h>      // key_t, sem_t, pid_t      
-#include <sys/shm.h>        // shmat(), IPC_RMID in shmctl()      
-#include <errno.h>          // errno, ECHILD            
-#include <semaphore.h>      // sem_open(), sem_destroy(), sem_wait().. 
-#include <fcntl.h>          // O_CREAT, O_EXEC 
-#include <unistd.h>         // fork
-#include <sys/wait.h>       // wait
+#include <stdio.h>       
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/shm.h>     
+#include <errno.h>
+#include <semaphore.h>
+#include <fcntl.h>
 
-char* Buffer1;
-sem_t* Buffer1_sem;
+char* buffer;
+char* buffer2;
+sem_t* buff1;
+sem_t* buff2;
 
-char* Buffer2;
-sem_t* Buffer2_sem;
 
 
 int main(){
 
-    //Creating Shared Memory for buffer1 
-    //0644 = Permission, size is of an integer value so only one value is stored in shared mem (potentialCPatients)
-    int shmid_buffer1 = shmget(101010, 1024, 0644|IPC_CREAT); 
-    //printf("Shmid_buffer1 : %d\n", shmid_buffer1);
 
-    if (shmid_buffer1 < 0){
-        perror("Shared memory for buffer1 not created successfully\n");
-        exit(0);
-    }
-
-    //Attaching shared memory segment (identified by shmid_buffer1) to the address space of the calling process
-    //2nd parameter is NULL so the system chooses a suitable unused address at which to attach the shared mem segment 
-    Buffer1 = (char*) shmat(shmid_buffer1, NULL, 0);
-
-    if (Buffer1 < 0){
-        perror("Shared memory for Buffer 1 not attached successfully\n");
-        exit(1);
-    } 
-    printf("Shared mem work for Buffer 1 done\n");
-
-
-
-
-
-
-    //Creating Shared Memory for buffer2
-    //0644 = Permission, size is of an integer value so only one value is stored in shared mem (potentialCPatients)
-    int shmid_buffer2 = shmget(121212, 1024, 0644|IPC_CREAT); 
-    //printf("Shmid_buffer2 : %d\n", shmid_buffer2);
-
-    if (shmid_buffer2 < 0){
-        perror("Shared memory for buffer2 not created successfully\n");
-        exit(0);
-    }
-
-    //Attaching shared memory segment (identified by shmid_buffer1) to the address space of the calling process
-    //2nd parameter is NULL so the system chooses a suitable unused address at which to attach the shared mem segment 
-    Buffer2 = (char*) shmat(shmid_buffer2, NULL, 0);
-
-    if (Buffer2 < 0){
-        perror("Shared memory for Buffer 2 not attached successfully\n");
-        exit(1);
-    }
-    printf("Shared mem work for Buffer 2 done\n");
-
-
-
-
-
-
-    //Creating Shared Memory for buffer1 semaphore
-    //0644 = Permission, size is of an integer value so only one value is stored in shared mem (potentialCPatients)
-    int shmid_buffer1_sem = shmget(131313, 1024, 0644|IPC_CREAT); 
-    //printf("Shmid_buffer1_sem : %d\n", shmid_buffer1_sem);
-
-    if (shmid_buffer1_sem < 0){
-        perror("Shared memory for buffer1 semaphore not created successfully\n");
-        exit(0);
-    }
-
-    //Attaching shared memory segment (identified by shmid_buffer1_sem) to the address space of the calling process
-    //2nd parameter is NULL so the system chooses a suitable unused address at which to attach the shared mem segment 
-    Buffer1_sem = (sem_t*) shmat(shmid_buffer1_sem, NULL, 0);
-
-    if (Buffer1_sem < 0){
-        perror("Shared memory for Buffer 1 semaphore not attached successfully\n");
-        exit(1);
-    }    
-
-    Buffer1_sem = sem_open("Buffer1_sem", O_CREAT|O_EXCL, 0644, 1);
-    sem_unlink("Buffer1_sem"); 
-    printf("Shared mem work for Buffer 1 semaphore done\n");
-
-
-
-
-
-
-
-    //Creating Shared Memory for buffer2 semaphore
-    //0644 = Permission, size is of an integer value so only one value is stored in shared mem (potentialCPatients)
-    int shmid_buffer2_sem = shmget(141414, 1024, 0644|IPC_CREAT); 
-    //printf("Shmid_buffer2_sem : %d\n", shmid_buffer2_sem);
-
-    if (shmid_buffer2_sem < 0){
-        perror("Shared memory for buffer2 semaphore not created successfully\n");
-        exit(0);
-    }
-
-    //Attaching shared memory segment (identified by shmid_buffer2_sem) to the address space of the calling process
-    //2nd parameter is NULL so the system chooses a suitable unused address at which to attach the shared mem segment 
-    Buffer2_sem = (sem_t*) shmat(shmid_buffer2_sem, NULL, 0);
-
-    if (Buffer2_sem < 0){
-        perror("Shared memory for Buffer 2 semaphore not attached successfully\n");
-        exit(1);
-    }
-
-    Buffer2_sem = sem_open("Buffer2_sem", O_CREAT|O_EXCL, 0644, 1);
-    sem_unlink("Buffer2_sem"); 
-    printf("Shared mem work for Buffer 2 semaphore done\n"); 
-
-
-
-
-
-    
-    pid_t ProcessA, ProcessB, ProcessC, ProcessD;
-
-	ProcessA = fork();
-
-	if (ProcessA == 0) {
-		printf("In ProcessA -> Child1");  // Child A code 
-		// Process A needs to read 10 characters from FileA.txt and place it in buffer1
-
-		FILE *fileA = fopen("file-1.txt", "r");
-		if (fileA == NULL){
-			perror("FileA failed to open\n");
-			exit(0);	
-		}
-		else{ printf("FileA opened\n"); }
-
-		//Accessing Buffer1 so don't let any other to access it
-
-		sem_wait(Buffer1_sem);
-
-		int i;
-		for(i = 0; i < 10; i++){
-			Buffer1[i] = fgetc(fileA);	
-		}
-		printf("Buffer1 after ProcessA: %s\n", Buffer1);
-
-		sem_post(Buffer1_sem);
-
-		fclose(fileA);
-		printf("PrcoessA is done\n");
+	int shmid_buff1 = shmget(121212, 1024, 0644|IPC_CREAT);										//Shared memory for Buffer 1
+	if (shmid_buff1 < 0){
+		perror ("Shared memory not created\n");
 		exit(0);
+	}
+	buffer = (char*) shmat(shmid_buff1, NULL, 0);								
+	if (buffer < 0){
+		perror ("Shared memory att not done\n");
+		exit(0);
+	}
 
-	} else {
-		wait(NULL); //Wait for ProcessA
-		printf("In Parent"); // Parent Code 
-	    ProcessB = fork();
 
-	    if (ProcessB == 0) {
-	    	printf("In ProcessB-> Child2"); //Child B code
 
-	    	// Process B needs to read 10 characters from FileB.txt and place it in buffer1 after ProcessA 10 characters
 
-			FILE *fileB = fopen("file-2.txt", "r");
-			if (fileB == NULL){
-				perror("FileB failed to open\n");
-				exit(0);	
-			}
-			else{ printf("FileB opened\n"); }
+	int shmid_buff2 = shmget(131313, 1024, 0644|IPC_CREAT); 									//Shared memory for Buffer 2
+	if (shmid_buff2 < 0){
+		perror ("Shared memory not created\n");
+		exit(0);
+	}
+	buffer2 = (char*) shmat(shmid_buff2, NULL, 0);								
+	if (buffer2 < 0){
+		perror ("Shared memory att not done\n");
+		exit(0);
+	}
 
-			//char fileBstuff[11]; // 11 because last for null character
-			//memset(fileBstuff,'\0',sizeof(fileBstuff)); 
 
-			//Accessing Buffer1 so don't let any other to access it
 
-			sem_wait(Buffer1_sem);
 
-			int i;
-			
-			for(i = 10; i < 20; i++){
-				Buffer1[i] = fgetc(fileB);	
-			}
-			printf("Buffer1 after ProcessA: %s\n", Buffer1);
+	int shmid_buff1_sem = shmget(141414, 1024, 0644|IPC_CREAT); 								//Semaphore for Buff1 shared memory
+	if (shmid_buff1_sem < 0){
+		perror ("Shared memory for buff1_sem not created\n");
+		exit(0);
+	}
+	buff1 = (sem_t*) shmat(shmid_buff1_sem, NULL, 0);								
 
-			sem_post(Buffer1_sem);
+	if (buff1 < 0){
+		perror ("Shared memory not attached\n");
+		exit(0);
+	}
+	sem_open("sem_buff1", O_CREAT|O_EXCL, 0644, 1);
+	int result = sem_unlink("sem_buff1");
+	if (result < 0){
+		perror("Error in unlinking semaphore buff1_sem\n");
+		exit(0);
+	}	
 
-			fclose(fileB);
-			printf("Work of Process B is done\n");
-			exit(0);
 
-	    } else {
-	    	wait(NULL);//Wait for ProcessB
-	    	printf("In Parent"); //Parent Code
-	        ProcessC = fork();
 
-	        if (ProcessC == 0){
-	        	printf("In ProcessC -> Child3"); // Child C Code 
 
-	        	sem_wait(Buffer1_sem);
-	        	sem_wait(Buffer2_sem);
 
-	        	int i;	        	
+	int shmid_buff2_sem = shmget(151515, 1024, 0644|IPC_CREAT); 								//Semaphore for Buff2 shared memory
+	if (shmid_buff2_sem < 0){
+		perror ("Shared memory for buff2_sem not created\n");
+		exit(0);
+	}
+	buff2 = (sem_t*) shmat(shmid_buff2_sem, NULL, 0);								
 
-	        	for(i = 0; i < 20; i++){
-	        		Buffer2[i] = Buffer1[i];	
-	        	}
+	if (buff2 < 0){
+		perror ("Shared memory not attached\n");
+		exit(0);
+	}
+	sem_open("sem_buff2", O_CREAT|O_EXCL, 0644, 1);
+	result = sem_unlink("sem_buff2");
+	if (result < 0){
+		perror("Error in unlinking semaphore buff2_sem\n");
+		exit(0);
+	}
 
-	        	printf("Buffer1 after Process C: %s\n", Buffer1);
-	        	printf("Buffer2 after Process C: %s\n", Buffer2);
 
-	        	sem_post(Buffer2_sem);
-	        	sem_post(Buffer1_sem);
 
-	        	printf("All work of Process C is done\n");
-	        	exit(0);
 
-	        }else {
-	        	printf("In Parent"); // Parent Code
-	        	ProcessD = fork();
 
-	        	if (ProcessD == 0){
-	        		printf("In ProcessD -> Child4");	// Child D Code
 
-	        		sem_wait(Buffer2_sem);
 
-	        		printf("Buffer2 in Process D: %s", Buffer2);
 
-	        		sem_post(Buffer2_sem);
-	        		printf("All work in ProcessD is done\n");
-	        		exit(0);
-	        	}
-	        	else{
-	        		printf("In parrent\n");
-	        		wait(NULL);
-	        	}
-	        }
+	if(fork() == 0){																	//Child1
+		//A say read and enter in buffer1
+		printf("In Process A\n");
+		FILE *fp;
+	    char line[11];
+	    line[10] = '\0';
+
+	    fp = fopen("file-1.txt", "r");
+   	    fgets(line, 11, (FILE*)fp);
+	    printf("%s\n", line);
+	    fclose(fp);
+	    
+	    sem_wait(buff1);
+	    for(int i=0; i<10; i++){
+	    	buffer[i] = line[i];
+	    	printf("%c", buffer[i]);
 	    }
-	} 
 
+	    sem_post(buff1);
+	    printf("\nLeaving Process A after writing to buffer1\n");
+	    exit(0);
+	}	
+	else{
+		wait(NULL);																		//Parent
+		if(fork() == 0){
+		//B say read and enter in buffer1												//Child2
+			printf("In Process B\n");
+			FILE *fp;
+		    char line[11];
+		    line[10] = '\0';
+
+		    fp = fopen("file-2.txt", "r");
+	   	    fgets(line, 11, (FILE*)fp);
+		    printf("%s\n", line);
+		    fclose(fp);
+		    
+		    sem_wait(buff1);
+		    int j = 10;
+		    for(int i=0; i<10; i++){
+		    	buffer[j] = line[i];
+		    	printf("%c", buffer[j]);
+		    	j++;
+		    }
+
+		    sem_post(buff1);
+		    printf("\nLeaving Process B after writing to buffer1\n");
+		    printf("%s\n", buffer);
+		    exit(0);
+		}
+		else{
+			wait(NULL);																			//Parent
+			if(fork() == 0){		
+			//C say read from buffer1 to buffer 2										//Child3
+				printf("\nIn Process C\n");
+				sem_wait(buff1);
+				sem_wait(buff2);
+				for(int i = 0; i<20; i++){
+					buffer2[i] = buffer[i];
+				}
+				printf("Buffer 1 = %s\n", buffer);
+				printf("Buffer 2 = %s\n", buffer2);
+				sem_post(buff1);
+				sem_post(buff2);
+				exit(0);
+			}
+			else{	
+				wait(NULL);																//Parent
+				if(fork() == 0){														//Child4
+					//D reads from Buffer 2 and prints
+					printf("In Process D\n");
+					sem_wait(buff2);
+					
+					for(int i = 0; i<20; i++){
+						buffer2[i] = buffer[i];
+						printf("%c", buffer2[i]);
+					}
+					sem_post(buff2);
+					printf("\n");
+					exit(0);
+				}
+				else{
+					wait(NULL);
+				}
+			}
+		}
+	}
+
+
+
+
+
+
+
+
+
+
+
+	result = shmdt(buff1);																//Detaching and Destroying here
+	if (result < 0){
+		perror("Error in removing semaphore buff1_sem\n");
+		exit(0);
+	}
+	result = shmdt(buff2);
+	if (result < 0){
+		perror("Error in removing semaphore buff2_sem\n");
+		exit(0);
+	}
+	result = shmdt(buffer);
+	if (result < 0){
+		perror("Error in removing semaphore buff2_sem\n");
+		exit(0);
+	}
+	result = shmdt(buffer2);
+	if (result < 0){
+		perror("Error in removing semaphore buff2_sem\n");
+		exit(0);
+	}
 
 	
+	shmctl(shmid_buff1, IPC_RMID, 0);
+	shmctl(shmid_buff2, IPC_RMID, 0);
+	shmctl(shmid_buff1_sem, IPC_RMID, 0);
+	shmctl(shmid_buff2_sem, IPC_RMID, 0);
+    sem_destroy(buff1);
+    sem_destroy(buff2);
 
-
-    //Cleaning shared mem stuff
-    shmdt(Buffer1);
-    shmdt(Buffer2);
-    shmdt(Buffer1_sem);
-    shmdt(Buffer2_sem);
-    printf("Shmdt for all shared mem done\n");
-
-    shmctl(shmid_buffer1, IPC_RMID, 0);
-    shmctl(shmid_buffer2, IPC_RMID, 0);
-    shmctl(shmid_buffer1_sem, IPC_RMID, 0);
-    shmctl(shmid_buffer2_sem, IPC_RMID, 0);
-    printf("shmctl done for all shared mem\n");
-
-    //delete semaphores
-    sem_destroy(Buffer1_sem);
-    sem_destroy(Buffer2_sem);
-    printf("sem_destroy for semaphores done\n");
-
+	printf("\nEverything works\n");
 	return 0;
 }
+
