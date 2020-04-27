@@ -93,16 +93,17 @@ int main(){
 
 	if(fork() == 0){																	//Child1
 		//A say read and enter in buffer1
-		printf("In Process A\n");
+		printf("\nIn Process A\n");
 		FILE *fp;
 	    char line[11];
 	    line[10] = '\0';
 
 	    fp = fopen("file-1.txt", "r");
    	    fgets(line, 11, (FILE*)fp);
-	    printf("%s\n", line);
+	    printf("Read from file: %s\n", line);
 	    fclose(fp);
 	    
+	    printf("Printed to buffer: ");
 	    sem_wait(buff1);
 	    for(int i=0; i<10; i++){
 	    	buffer[i] = line[i];
@@ -110,7 +111,7 @@ int main(){
 	    }
 
 	    sem_post(buff1);
-	    printf("\nLeaving Process A after writing to buffer1\n");
+	    printf("\nLeaving Process A after writing to buffer1\n\n");
 	    exit(0);
 	}	
 	else{
@@ -124,9 +125,10 @@ int main(){
 
 		    fp = fopen("file-2.txt", "r");
 	   	    fgets(line, 11, (FILE*)fp);
-		    printf("%s\n", line);
+		    printf("Read from file: %s\n", line);
 		    fclose(fp);
 		    
+		    printf("Printed to buffer: ");
 		    sem_wait(buff1);
 		    int j = 10;
 		    for(int i=0; i<10; i++){
@@ -136,12 +138,12 @@ int main(){
 		    }
 
 		    sem_post(buff1);
-		    printf("\nLeaving Process B after writing to buffer1\n");
-		    printf("%s\n", buffer);
+		    printf("\nLeaving Process B after writing to buffer1\n\n");
+		    printf("Buffer 1 now contains: %s\n", buffer);
 		    exit(0);
 		}
 		else{
-			wait(NULL);																			//Parent
+			wait(NULL);																	//Parent
 			if(fork() == 0){		
 			//C say read from buffer1 to buffer 2										//Child3
 				printf("\nIn Process C\n");
